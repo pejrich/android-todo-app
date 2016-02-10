@@ -9,13 +9,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.commons.io.FileUtils;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,9 +23,8 @@ import java.util.ArrayList;
 
 public class ListShow extends AppCompatActivity {
 
-    private String listName;
-    private ArrayList<String> tasks;
-    private ArrayAdapter<String> tasksAdapter;
+    private ArrayList<Task> tasks;
+    private CustomAdapter tasksAdapter;
     private ListView lvTasks;
     private String dataFileName;
 
@@ -41,6 +40,7 @@ public class ListShow extends AppCompatActivity {
         }
         // Get data about list
         Bundle listData = getIntent().getExtras();
+        String listName;
         if (listData == null) {
             return;
         } else {
@@ -57,22 +57,34 @@ public class ListShow extends AppCompatActivity {
             toast.setGravity(Gravity.TOP, 0, 225);
             toast.show();
         }
-        tasksAdapter = new ArrayAdapter<String>(this,
-                R.layout.list_item, tasks);
+        tasksAdapter = new CustomAdapter(this, tasks);
         lvTasks.setAdapter(tasksAdapter);
         setupListViewListener();
     }
 
     private void setupListViewListener() {
-        lvTasks.setOnItemLongClickListener(
-            new AdapterView.OnItemLongClickListener() {
+        lvTasks.setOnItemClickListener(
+            new AdapterView.OnItemClickListener() {
                 @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+                public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
                     // Remove the item within array
-                    tasks.remove(pos);
+                    tasks.get(pos).toggleStatus();
                     // Refresh the adapter
                     tasksAdapter.notifyDataSetChanged();
                     // write to files
+                    writeTasks();
+                }
+            }
+        );
+        lvTasks.setOnItemLongClickListener(
+                new AdapterView.OnItemLongClickListener() {
+                    @Override
+                    public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+                        // Remove the item within array
+                        tasks.remove(pos);
+                        // Refresh the adapter
+                        tasksAdapter.notifyDataSetChanged();
+                        // write to files
                     writeTasks();
                     // Return true consumes the long click as handled
                     return true;
@@ -86,7 +98,8 @@ public class ListShow extends AppCompatActivity {
         EditText etNewTask = (EditText) findViewById(R.id.etNewTask);
         String taskText = etNewTask.getText().toString().trim();
         if (taskText.length() > 0) {
-            tasksAdapter.add(taskText);
+            Task newTask = new Task(taskText, 0);
+            tasksAdapter.add(newTask);
             etNewTask.setText("");
             writeTasks();
             Toast.makeText(this, R.string.task_name_success_flash, Toast.LENGTH_SHORT).show();
@@ -100,9 +113,10 @@ public class ListShow extends AppCompatActivity {
         File filesDir = getFilesDir();
         File dataFile = new File(filesDir, dataFileName);
         try {
-            tasks = new ArrayList<String>(FileUtils.readLines(dataFile));
+            ArrayList jsonTasks = new ArrayList<String>(FileUtils.readLines(dataFile));
+            tasks = jsonToTasks(jsonTasks);
         } catch (IOException e) {
-            tasks = new ArrayList<String>();
+            tasks = new ArrayList<Task>();
         }
     }
 
@@ -118,10 +132,32 @@ public class ListShow extends AppCompatActivity {
         }
         // Write to file
         try{
-            FileUtils.writeLines(dataFile, tasks);
+            FileUtils.writeLines(dataFile, tasksToJson());
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private ArrayList tasksToJson() {
+        ArrayList temp = new ArrayList<String>();
+        for (Task task : tasks) {
+            temp.add(task.toJSON().toString());
+        }
+        return temp;
+    }
+
+    private ArrayList jsonToTasks(ArrayList<String> jsonTasks) {
+        ArrayList temp = new ArrayList<Task>();
+        for (String task : jsonTasks) {
+            try {
+                JSONObject jsonTask = new JSONObject(task);
+                String name = jsonTask.getString("name");
+                Integer status = jsonTask.getInt("status");
+                Task tempTask = new Task(name, status);
+                temp.add(tempTask);
+            } catch (Exception e) {}
+        }
+        return temp;
     }
 
     @Override
