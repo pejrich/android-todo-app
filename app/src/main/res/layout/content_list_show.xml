@@ -1,32 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.perich.todoz.ListShow"
-    tools:showIn="@layout/activity_list_show">
+    tools:context="com.perich.todoz.ListShow">
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/lvTasks"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+    </ListView>
 
     <TextView
+        android:id="@+id/underListNote"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:id="@+id/listShowText"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/lvTasks"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="72dp" />
+        android:visibility="invisible"
+        android:text="Click and hold to delete." />
+
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/etNewTask"
+        android:layout_alignTop="@+id/btnAddTask"
+        android:hint="Enter a new task"
+        android:paddingLeft="10dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/btnAddTask"
+        android:layout_toStartOf="@+id/btnAddTask"
+        android:layout_alignParentBottom="true"
+        android:background="#ffffff" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Back"
-        android:id="@+id/listShowBackButton"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:onClick="onBackButtonClick"/>
+        android:text="Add Task"
+        android:id="@+id/btnAddTask"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="onAddTask"/>
 </RelativeLayout>
+

@@ -5,13 +5,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.commons.io.FileUtils;
@@ -40,7 +39,7 @@ public class ListsIndex extends AppCompatActivity {
         readLists();
         // if no lists, display a message.
         if (lists.isEmpty()) {
-            Toast toast = Toast.makeText(this, "Add a list", Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(this, R.string.no_lists_message, Toast.LENGTH_LONG);
             toast.setGravity(Gravity.TOP, 0, 225);
             toast.show();
         }
@@ -54,11 +53,16 @@ public class ListsIndex extends AppCompatActivity {
 
     public void onAddList(View v) {
         EditText etNewList = (EditText) findViewById(R.id.etNewList);
-        String listText = etNewList.getText().toString();
-        listsAdapter.add(listText);
-        etNewList.setText("");
-        writeLists();
-        Toast.makeText(this, "List added", Toast.LENGTH_SHORT).show();
+        String listText = etNewList.getText().toString().trim();
+        if (listText.length() > 0) {
+            listsAdapter.add(listText);
+            etNewList.setText("");
+            writeLists();
+            Toast.makeText(this, R.string.list_name_success_flash, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, R.string.list_name_error_flash, Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     private void readLists() {
@@ -74,6 +78,13 @@ public class ListsIndex extends AppCompatActivity {
     private void writeLists() {
         File filesDir = getFilesDir();
         File todoFile = new File(filesDir, fileFileName);
+        // Show hint under list
+        TextView t = (TextView) findViewById(R.id.underListNote);
+        if (lists.size() > 0) {
+            t.setVisibility(View.VISIBLE);
+        } else {
+            t.setVisibility(View.INVISIBLE);
+        }
         try{
             FileUtils.writeLines(todoFile, lists);
         } catch (IOException e) {
@@ -87,7 +98,7 @@ public class ListsIndex extends AppCompatActivity {
         lvLists.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> p, View v, int pos, long id) {
-                String clickedText = "clicked on " + lists.get(pos);
+                String clickedText = lists.get(pos);
                 Intent i = new Intent(context, ListShow.class);
                 i.putExtra("listName", clickedText);
                 startActivity(i);
@@ -98,6 +109,15 @@ public class ListsIndex extends AppCompatActivity {
         lvLists.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> p, View v, int pos, long id) {
+                // delete task list data file
+                String dataFileName = lists.get(pos) + "data.txt";
+                File filesDir = getFilesDir();
+                File dataFile = new File(filesDir, dataFileName);
+                try {
+                    FileUtils.writeLines(dataFile, new ArrayList<String>());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 // Remove the item within array
                 lists.remove(pos);
                 // Refresh the adapter
@@ -108,28 +128,5 @@ public class ListsIndex extends AppCompatActivity {
                 return true;
             }
         });
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_lists_index, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 }

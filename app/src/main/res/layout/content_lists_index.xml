@@ -7,14 +7,23 @@
 
 
     <ListView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/lvLists"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_above="@+id/btnAddList">
+        android:layout_alignParentStart="true">
     </ListView>
+
+    <TextView
+        android:id="@+id/underListNote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/lvLists"
+        android:layout_centerHorizontal="true"
+        android:visibility="invisible"
+        android:text="Click and hold to delete." />
 
     <EditText
         android:layout_width="wrap_content"
@@ -22,11 +31,13 @@
         android:id="@+id/etNewList"
         android:layout_alignTop="@+id/btnAddList"
         android:hint="Enter a new List"
+        android:paddingLeft="10dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_toLeftOf="@+id/btnAddList"
         android:layout_toStartOf="@+id/btnAddList"
-        android:layout_alignParentBottom="true" />
+        android:layout_alignParentBottom="true"
+        android:background="#ffffff" />
 
     <Button
         android:layout_width="wrap_content"
