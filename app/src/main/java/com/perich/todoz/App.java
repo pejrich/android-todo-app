@@ -1,6 +1,8 @@
-// This file creates a global Context for the all to allow access
-// of the data files directory without passing around an instance "this" Context to statis
-// methods like List.save and List.read
+// getFileDirs() requires a instance Context, but I want to do read/write in a static method.
+
+// This file creates a global Context for the app to allow access
+// to the data files directory without passing around an instance "this" Context to static
+// methods like List.save and List.read. See ln 28 of List.java (public static File getFileDir)
 
 package com.perich.todoz;
 
