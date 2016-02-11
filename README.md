@@ -40,10 +40,12 @@ GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
 
-Challenges:
-    Without the use of a database, I found the data cumbersome to deal with. Everything had to passed around. Also the saving is messy since each save requires serializing Java objects into JSON strings, and copying them to a data file, then parsing the JSON back into Java objects and rendering them on the page. Since the amount of data is small, this won't affect app performance too much, but it makes the code more confusing that it needs to be, and it makes adding and changing functionality more complex. With a DB objects can easily be created/updated/read/deleted individually.
+### Challenges:
 
-Thing I want to improve:
+Without the use of a database, I found the data cumbersome to deal with. Everything had to passed around. Also the saving is messy since each save requires serializing Java objects into JSON strings, and copying them to a data file, then parsing the JSON back into Java objects and rendering them on the page. Since the amount of data is small, this won't affect app performance too much, but it makes the code more confusing that it needs to be, and it makes adding and changing functionality more complex. With a DB objects can easily be created/updated/read/deleted individually.
+
+### Things I want to improve:
+
 1. Store lists and tasks in a database instead of in text files.
     - This will speed up the app, both in terms of development and performance.
     * I plan to add this before the start of the course.
