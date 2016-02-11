@@ -1,5 +1,7 @@
 package com.perich.todoz;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -27,6 +29,10 @@ public class ListShow extends AppCompatActivity {
     private CustomAdapter tasksAdapter;
     private ListView lvTasks;
     private String dataFileName;
+    // Edit Activity requestCodes;
+    private Integer initialRequestCode = 0;
+    private Integer editResultCode = 1;
+    private Integer deleteResultCode = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,42 +63,71 @@ public class ListShow extends AppCompatActivity {
             toast.setGravity(Gravity.TOP, 0, 225);
             toast.show();
         }
-        tasksAdapter = new CustomAdapter(this, tasks);
+        tasksAdapter = new CustomAdapter(this, R.layout.task_item, tasks);
         lvTasks.setAdapter(tasksAdapter);
         setupListViewListener();
     }
 
+
     private void setupListViewListener() {
+        final Context that = this;
         lvTasks.setOnItemClickListener(
-            new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-                    // Remove the item within array
-                    tasks.get(pos).toggleStatus();
-                    // Refresh the adapter
-                    tasksAdapter.notifyDataSetChanged();
-                    // write to files
-                    writeTasks();
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+                        toggleAtPosition(pos);
+                    }
                 }
-            }
         );
         lvTasks.setOnItemLongClickListener(
                 new AdapterView.OnItemLongClickListener() {
                     @Override
                     public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
-                        // Remove the item within array
-                        tasks.remove(pos);
-                        // Refresh the adapter
-                        tasksAdapter.notifyDataSetChanged();
-                        // write to files
-                    writeTasks();
-                    // Return true consumes the long click as handled
-                    return true;
+                        // Start edit Intent
+                        Intent intent = new Intent(that, EditTask.class);
+                        intent.putExtra("taskText", tasks.get(pos).getName());
+                        intent.putExtra("taskPosition", pos);
+                        startActivityForResult(intent, initialRequestCode);
+                        // Return true consumes the long click as handled
+                        return true;
+                    }
                 }
-            }
         );
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Bundle bundle = data.getExtras();
+        Integer taskPosition = bundle.getInt("taskPosition");
+        if (requestCode == initialRequestCode) {
+            if (resultCode == editResultCode) {
+                String newTaskText =  bundle.getString("newTaskText");
+                tasks.get(taskPosition).setName(newTaskText);
+                tasksAdapter.notifyDataSetChanged();
+                writeTasks();
+            } else if (resultCode == deleteResultCode) {
+                deleteAtPosition(taskPosition);
+            }
+        }
+    }
+
+    public void deleteAtPosition(int position) {
+        // Remove the item within array
+        tasks.remove(position);
+        // Refresh the adapter
+        tasksAdapter.notifyDataSetChanged();
+        // write to files
+        writeTasks();
+    }
+
+    public void toggleAtPosition(int position) {
+        tasks.get(position).toggleStatus();
+        // Refresh the adapter
+        tasksAdapter.notifyDataSetChanged();
+        // write to files
+        writeTasks();
+    }
 
     public void onAddTask(View v) {
         EditText etNewTask = (EditText) findViewById(R.id.etNewTask);

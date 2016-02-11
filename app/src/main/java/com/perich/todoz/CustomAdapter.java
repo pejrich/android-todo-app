@@ -11,13 +11,13 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class CustomAdapter extends ArrayAdapter<Task> {
+public class CustomAdapter extends ArrayAdapter {
 
-    ArrayList<Task> modelItems = new ArrayList<Task>();
+    ArrayList<Task> modelItems = new ArrayList<>();
     Context context;
 
-    public CustomAdapter(Context context, ArrayList<Task> resource) {
-        super(context, R.layout.task_item, resource);
+    public CustomAdapter(Context context, int layout, ArrayList resource) {
+        super(context, layout, resource);
         // TODO Auto-generated constructor stub
         this.context = context;
         this.modelItems = resource;
@@ -39,4 +39,3 @@ public class CustomAdapter extends ArrayAdapter<Task> {
         return convertView;
     }
 }
-

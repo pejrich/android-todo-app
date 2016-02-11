@@ -9,4 +9,5 @@
     <string name="task_name_success_flash">Task created</string>
     <string name="task_name_error_flash">Please enter a valid task name</string>
     <string name="delete_info">Long click to delete</string>
+    <string name="title_activity_edit_task">EditTask</string>
 </resources>

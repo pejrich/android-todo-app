@@ -19,6 +19,9 @@ public class Task {
     public String getName() {
         return this.name;
     }
+    public void setName(String newName) {
+        this.name = newName;
+    }
     public int getStatus() {
         return this.status;
     }
