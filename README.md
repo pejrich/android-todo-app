@@ -34,11 +34,11 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://imgur.com/57qeFvN' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='//imgur.com/57qeFvN' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
-![Video Walkthrough](http://imgur.com/57qeFvN)
+![Video Walkthrough](//imgur.com/57qeFvN)
 
-![Video Walkthrough](https://raw.github.com/perich/android-todo-app/todo-demo.gif)
+![Video Walkthrough](todo-demo.gif)
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
