@@ -93,17 +93,20 @@ public class List {
         }
     }
 
-    public static String getStats(String listName) {
-        // returns tasks completed over number of tasks
-        // Example: "6/23"
+    public static Integer numTasksTotal(String listName) {
+        ArrayList<Task> tasks = List.taskArray(listName);
+        return tasks.size();
+    }
+
+    public static Integer numTasksCompleted(String listName) {
         ArrayList<Task> tasks = List.taskArray(listName);
         Integer completed = 0;
         for (Task task : tasks) {
             if (task.getStatus() == 1) {
-                completed ++;
+                completed++;
             }
         }
-        return completed + "/" + tasks.size();
+        return completed;
     }
 
     public static ArrayList taskArray(String listName) {
