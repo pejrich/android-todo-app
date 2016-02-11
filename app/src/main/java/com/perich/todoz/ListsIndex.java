@@ -7,24 +7,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class ListsIndex extends AppCompatActivity {
 
-    private static final String fileFileName = "lists.txt";
-
-    private ArrayList<String> lists;
-    private ArrayAdapter<String> listsAdapter;
+    private ArrayList<List> lists;
+    private ListAdapter listsAdapter;
     private ListView lvLists;
 
     @Override
@@ -33,8 +26,6 @@ public class ListsIndex extends AppCompatActivity {
         setContentView(R.layout.activity_lists_index);
         // get list view
         lvLists = (ListView) findViewById(R.id.lvLists);
-        // initialize lists ArrayList
-        lists = new ArrayList<String>();
         // Load lists from file (if any)
         readLists();
         // if no lists, display a message.
@@ -44,20 +35,28 @@ public class ListsIndex extends AppCompatActivity {
             toast.show();
         }
         // Set up adapter
-        listsAdapter = new ArrayAdapter<String>(this,
+        listsAdapter = new ListAdapter(this,
                 R.layout.list_item, lists);
         lvLists.setAdapter(listsAdapter);
         // Set up long click delete listener
         setupListViewListeners();
     }
 
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        // This reloads the task count stats
+        listsAdapter.notifyDataSetChanged();
+    }
+
     public void onAddList(View v) {
         EditText etNewList = (EditText) findViewById(R.id.etNewList);
         String listText = etNewList.getText().toString().trim();
         if (listText.length() > 0) {
-            listsAdapter.add(listText);
+            List newList = new List(listText);
+            listsAdapter.add(newList);
             etNewList.setText("");
-            writeLists();
+            saveAndRefresh();
             Toast.makeText(this, R.string.list_name_success_flash, Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, R.string.list_name_error_flash, Toast.LENGTH_SHORT).show();
@@ -66,29 +65,17 @@ public class ListsIndex extends AppCompatActivity {
     }
 
     private void readLists() {
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, fileFileName);
-        try {
-            lists = new ArrayList<String>(FileUtils.readLines(todoFile));
-        } catch (IOException e) {
-            lists = new ArrayList<String>();
-        }
+        lists = List.all();
     }
 
     private void writeLists() {
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, fileFileName);
+        List.saveAll(lists);
         // Show hint under list
         TextView t = (TextView) findViewById(R.id.underListNote);
         if (lists.size() > 0) {
             t.setVisibility(View.VISIBLE);
         } else {
             t.setVisibility(View.INVISIBLE);
-        }
-        try{
-            FileUtils.writeLines(todoFile, lists);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -98,7 +85,7 @@ public class ListsIndex extends AppCompatActivity {
         lvLists.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> p, View v, int pos, long id) {
-                String clickedText = lists.get(pos);
+                String clickedText = lists.get(pos).name;
                 Intent i = new Intent(context, ListShow.class);
                 i.putExtra("listName", clickedText);
                 startActivity(i);
@@ -110,23 +97,20 @@ public class ListsIndex extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> p, View v, int pos, long id) {
                 // delete task list data file
-                String dataFileName = lists.get(pos) + "data.txt";
-                File filesDir = getFilesDir();
-                File dataFile = new File(filesDir, dataFileName);
-                try {
-                    FileUtils.writeLines(dataFile, new ArrayList<String>());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                List.deleteList(lists.get(pos).getName());
                 // Remove the item within array
                 lists.remove(pos);
-                // Refresh the adapter
-                listsAdapter.notifyDataSetChanged();
-                // write to files
-                writeLists();
+                saveAndRefresh();
                 // Return true consumes the long click as handled
                 return true;
             }
         });
+    }
+
+    public void saveAndRefresh() {
+        // Refresh the adapter
+        listsAdapter.notifyDataSetChanged();
+        // write to files
+        writeLists();
     }
 }

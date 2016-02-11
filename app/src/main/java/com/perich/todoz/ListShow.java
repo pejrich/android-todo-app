@@ -16,19 +16,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.commons.io.FileUtils;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class ListShow extends AppCompatActivity {
 
+    public String listName;
     private ArrayList<Task> tasks;
-    private CustomAdapter tasksAdapter;
+    private TaskAdapter tasksAdapter;
     private ListView lvTasks;
-    private String dataFileName;
     // Edit Activity requestCodes;
     private Integer initialRequestCode = 0;
     private Integer editResultCode = 1;
@@ -46,15 +41,12 @@ public class ListShow extends AppCompatActivity {
         }
         // Get data about list
         Bundle listData = getIntent().getExtras();
-        String listName;
         if (listData == null) {
             return;
         } else {
             listName = listData.getString("listName");
             setTitle(listName);
         }
-        // set data file name
-        dataFileName = listName + "data.txt";
         // init list view and item arrray list
         lvTasks = (ListView) findViewById(R.id.lvTasks);
         readTasks();
@@ -63,7 +55,7 @@ public class ListShow extends AppCompatActivity {
             toast.setGravity(Gravity.TOP, 0, 225);
             toast.show();
         }
-        tasksAdapter = new CustomAdapter(this, R.layout.task_item, tasks);
+        tasksAdapter = new TaskAdapter(this, R.layout.task_item, tasks);
         lvTasks.setAdapter(tasksAdapter);
         setupListViewListener();
     }
@@ -72,26 +64,26 @@ public class ListShow extends AppCompatActivity {
     private void setupListViewListener() {
         final Context that = this;
         lvTasks.setOnItemClickListener(
-                new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-                        toggleAtPosition(pos);
-                    }
+            new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+                    toggleAtPosition(pos);
                 }
+            }
         );
         lvTasks.setOnItemLongClickListener(
-                new AdapterView.OnItemLongClickListener() {
-                    @Override
-                    public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
-                        // Start edit Intent
-                        Intent intent = new Intent(that, EditTask.class);
-                        intent.putExtra("taskText", tasks.get(pos).getName());
-                        intent.putExtra("taskPosition", pos);
-                        startActivityForResult(intent, initialRequestCode);
-                        // Return true consumes the long click as handled
-                        return true;
-                    }
+            new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+                    // Start edit Intent
+                    Intent intent = new Intent(that, EditTask.class);
+                    intent.putExtra("taskText", tasks.get(pos).getName());
+                    intent.putExtra("taskPosition", pos);
+                    startActivityForResult(intent, initialRequestCode);
+                    // Return true consumes the long click as handled
+                    return true;
                 }
+            }
         );
     }
 
@@ -104,8 +96,7 @@ public class ListShow extends AppCompatActivity {
             if (resultCode == editResultCode) {
                 String newTaskText =  bundle.getString("newTaskText");
                 tasks.get(taskPosition).setName(newTaskText);
-                tasksAdapter.notifyDataSetChanged();
-                writeTasks();
+                saveAndRefresh();
             } else if (resultCode == deleteResultCode) {
                 deleteAtPosition(taskPosition);
             }
@@ -115,18 +106,12 @@ public class ListShow extends AppCompatActivity {
     public void deleteAtPosition(int position) {
         // Remove the item within array
         tasks.remove(position);
-        // Refresh the adapter
-        tasksAdapter.notifyDataSetChanged();
-        // write to files
-        writeTasks();
+        saveAndRefresh();
     }
 
     public void toggleAtPosition(int position) {
         tasks.get(position).toggleStatus();
-        // Refresh the adapter
-        tasksAdapter.notifyDataSetChanged();
-        // write to files
-        writeTasks();
+        saveAndRefresh();
     }
 
     public void onAddTask(View v) {
@@ -136,7 +121,7 @@ public class ListShow extends AppCompatActivity {
             Task newTask = new Task(taskText, 0);
             tasksAdapter.add(newTask);
             etNewTask.setText("");
-            writeTasks();
+            saveAndRefresh();
             Toast.makeText(this, R.string.task_name_success_flash, Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, R.string.task_name_error_flash, Toast.LENGTH_SHORT).show();
@@ -145,19 +130,11 @@ public class ListShow extends AppCompatActivity {
     }
 
     public void readTasks() {
-        File filesDir = getFilesDir();
-        File dataFile = new File(filesDir, dataFileName);
-        try {
-            ArrayList jsonTasks = new ArrayList<String>(FileUtils.readLines(dataFile));
-            tasks = jsonToTasks(jsonTasks);
-        } catch (IOException e) {
-            tasks = new ArrayList<Task>();
-        }
+        tasks = List.taskArray(listName);
     }
 
     public void writeTasks() {
-        File filesDir = getFilesDir();
-        File dataFile = new File(filesDir, dataFileName);
+        List.saveTasks(listName, tasks);
         // Show hint under list
         TextView t = (TextView) findViewById(R.id.underListNote);
         if (tasks.size() > 0) {
@@ -165,34 +142,6 @@ public class ListShow extends AppCompatActivity {
         } else {
             t.setVisibility(View.INVISIBLE);
         }
-        // Write to file
-        try{
-            FileUtils.writeLines(dataFile, tasksToJson());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private ArrayList tasksToJson() {
-        ArrayList temp = new ArrayList<String>();
-        for (Task task : tasks) {
-            temp.add(task.toJSON().toString());
-        }
-        return temp;
-    }
-
-    private ArrayList jsonToTasks(ArrayList<String> jsonTasks) {
-        ArrayList temp = new ArrayList<Task>();
-        for (String task : jsonTasks) {
-            try {
-                JSONObject jsonTask = new JSONObject(task);
-                String name = jsonTask.getString("name");
-                Integer status = jsonTask.getInt("status");
-                Task tempTask = new Task(name, status);
-                temp.add(tempTask);
-            } catch (Exception e) {}
-        }
-        return temp;
     }
 
     @Override
@@ -212,5 +161,12 @@ public class ListShow extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void saveAndRefresh() {
+        // Refresh the adapter
+        tasksAdapter.notifyDataSetChanged();
+        // write to files
+        writeTasks();
     }
 }

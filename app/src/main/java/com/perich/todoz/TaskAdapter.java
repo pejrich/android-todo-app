@@ -11,12 +11,12 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class CustomAdapter extends ArrayAdapter {
+public class TaskAdapter extends ArrayAdapter {
 
     ArrayList<Task> modelItems = new ArrayList<>();
     Context context;
 
-    public CustomAdapter(Context context, int layout, ArrayList resource) {
+    public TaskAdapter(Context context, int layout, ArrayList resource) {
         super(context, layout, resource);
         // TODO Auto-generated constructor stub
         this.context = context;
